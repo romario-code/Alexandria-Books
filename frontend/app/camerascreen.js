@@ -10,8 +10,8 @@ import {
   Button,
   Platform,
 } from 'react-native';
-
-const API_KEY = 'AIzaSyAO3bWIHgt_EeVHO-TVvL4HXO6_RZ06HuI';
+// Google API
+const API_KEY = process.env.API_KEY;
 
 export default function BookScanner() {
   const [books, setBooks] = useState([]);
