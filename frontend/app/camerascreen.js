@@ -11,7 +11,7 @@ import {
   Platform,
 } from 'react-native';
 // Google API
-const API_KEY = process.env.API_KEY;
+const API_KEY = process.env.EXPO_PUBLIC_API_KEY;
 
 export default function BookScanner() {
   const [books, setBooks] = useState([]);
@@ -91,7 +91,7 @@ export default function BookScanner() {
     }
   };
 
-  const API_URL = 'http://192.168.1.11:3030/api/books';
+  const API_URL = process.env.EXPO_PUBLIC_API_URL;
   const saveBook = async (book) => {
     try {
       const response = await fetch(API_URL, {

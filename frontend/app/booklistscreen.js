@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { router } from 'expo-router';
 
 import {
   View,
@@ -7,8 +7,8 @@ import {
   FlatList,
   StyleSheet,
   TouchableOpacity,
-  Image,
   Button,
+  Image,
   ActivityIndicator,
 } from 'react-native';
 
@@ -20,8 +20,12 @@ export default function BookListScreen({ navigation }) {
   useEffect(() => {
     const fetchLivros = async () => {
       try {
-        const response = await axios.get('http://192.168.1.11:3030/api/books');
-        setBooks(response.data);
+        const response = await fetch('http://192.168.1.11:3030/api/books');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setBooks(data);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -32,31 +36,40 @@ export default function BookListScreen({ navigation }) {
     fetchLivros();
   }, []);
 
-  if (loading) {
-    return <ActivityIndicator size="large" color="#0000ff" />;
-  }
-
   if (error) {
     return <Text>Error: {error}</Text>;
   }
 
+  if (books.length === 0) {
+    return (
+      <View style={styles.nenhumLivroCadastrado}>
+        <Text style={{ textAlign: 'center', fontSize: 20, marginBottom: 8 }}>
+          Nenhum livro cadastrado!
+        </Text>
+        <Button
+          title="Cadastrar Livros"
+          onPress={() => router.push('/camerascreen')}
+        />
+      </View>
+    );
+  }
   return (
     <FlatList
       data={books}
       keyExtractor={(item) => item.id.toString()}
       renderItem={({ item }) => (
         <View style={styles.container}>
-          <Text>{item.title}</Text>
-          <Text>{item.id}</Text>
+          <Text>{`Dynamic content: ${item.id}`}</Text>
+          <Text>{`Titulo: ${item.title}`}</Text>
           <Text>{item.authors}</Text>
           <Text>{item.publisher}</Text>
           <Image
-            style={{ objectFit: 'scale-down' }}
-            width={150}
-            height={300}
             source={{
-              uri: item.thumbnail || 'https://via.placeholder.com/150',
+              uri: item.thumbnail
+                ? item.thumbnail
+                : 'https://via.placeholder.com/150',
             }}
+            style={{ width: 150, height: 200, borderRadius: 5 }}
           />
         </View>
       )}
@@ -66,9 +79,18 @@ export default function BookListScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: {
+    padding: 10,
+    margin: 10,
+    backgroundColor: '#f9c2ff',
+    alignItems: 'center',
+    borderRadius: 10,
+  },
+  nenhumLivroCadastrado: {
     flex: 1,
-    padding: 24,
-    flexDirection: 'column',
-    backgroundColor: '#fff',
+    justifyContent: 'center',
+    padding: 10,
+    alignItems: 'center',
+    borderRadius: 10,
+    marginBottom: 60,
   },
 });

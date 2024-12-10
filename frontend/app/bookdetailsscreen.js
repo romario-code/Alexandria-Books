@@ -1,4 +1,4 @@
-export function ProductsDetails() {
+export default function ProductsDetails() {
   return (
     <div>
       <h2>Products Details</h2>

@@ -21,32 +21,81 @@ connection.connect((err) => {
   console.log('Conectado ao banco de dados MySQL');
 });
 
+// Função para verificar se um livro já existe
+const checkBookExists = (connection, isbn) => {
+  return new Promise((resolve, reject) => {
+    connection.query(
+      'SELECT isbn FROM books WHERE isbn = ?',
+      [isbn],
+      (error, results) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(results.length > 0);
+        }
+      },
+    );
+  });
+};
+
 // Rota para salvar um livro
-app.post('/api/books', (req, res) => {
+app.post('/api/books', async (req, res) => {
   const { id, title, authors, publisher, publishedDate, thumbnail } = req.body;
 
   if (!id || !title || !authors) {
     return res.status(400).json({ error: 'Campos obrigatórios faltando' });
   }
 
-  const query = `
+  //  Verificar se o livro já existe
+  try {
+  } catch (error) {
+    console.error('Erro ao processar requisição:', error);
+    res.status(500).json({
+      error: 'Erro interno',
+      message: 'Erro ao processar a requisição',
+    });
+  }
+
+  try {
+    // Verifica se o livro já existe
+    const exists = await checkBookExists(connection, id);
+    if (exists) {
+      return res.status(409).json({
+        message: `Livro com ISBN ${id} já existe no banco de dados`,
+      });
+    }
+
+    // Prepara a query de inserção
+    const query = `
     INSERT INTO books (isbn, title, authors, publisher, published_date, thumbnail) VALUES (?, ?, ?, ?, ?, ?)
   `;
 
-  connection.query(
-    query,
-    [id, title, authors.join(', '), publisher, publishedDate, thumbnail],
-    (error, results) => {
-      if (error) {
-        console.error('Erro ao salvar livro:', error);
-        res.status(500).json({ error: 'Erro ao salvar livro' });
-        return;
-      }
-      res
-        .status(201)
-        .json({ message: 'Livro salvo com sucesso', id: results.insertId });
-    },
-  );
+    // Executa a inserção
+    connection.query(
+      query,
+      [id, title, authors.join(', '), publisher, publishedDate, thumbnail],
+      (error, results) => {
+        if (error) {
+          return res.status(500).json({
+            error: 'Erro interno',
+            message: 'Não foi possível salvar o livro',
+          });
+        }
+
+        res.status(201).json({
+          message: 'Livro salvo com sucesso',
+          id: results.insertId,
+          isbn: id,
+        });
+      },
+    );
+  } catch (error) {
+    console.error('Erro ao processar requisição:', error);
+    res.status(500).json({
+      error: 'Erro interno',
+      message: 'Erro ao processar a requisição',
+    });
+  }
 });
 
 // Rota para buscar todos os livros

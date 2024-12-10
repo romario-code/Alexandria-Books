@@ -1,5 +1,5 @@
-import { View, StyleSheet, Text, Button } from 'react-native';
-import { Link, router } from 'expo-router';
+import { View, StyleSheet, Button } from 'react-native';
+import { router } from 'expo-router';
 
 export default function Root() {
   return (

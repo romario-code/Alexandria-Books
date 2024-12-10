@@ -1,14 +1,15 @@
 {
   "expo": {
-    "name": "Scanner App",
-    "slug": "Scanner App",
+    "name": "frontend",
+    "slug": "frontend",
+    "scheme": "frontend",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "scheme": "Scanner App",
+    "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -25,7 +26,6 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      ["expo-router"],
       [
         "expo-camera",
         {
@@ -33,7 +33,8 @@
           "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
           "recordAudioAndroid": true
         }
-      ]
+      ],
+      ["expo-router"]
     ]
   }
 }
