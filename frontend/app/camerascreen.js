@@ -106,12 +106,14 @@ export default function BookScanner() {
 
       if (response.ok) {
         Alert.alert('Sucesso', 'Livro salvo com sucesso!');
+      } else if (response.status === 409) {
+        Alert.alert('Atenção', data.message);
       } else {
         throw new Error(data.error || 'Erro ao salvar livro');
       }
     } catch (error) {
       console.error('Erro ao salvar livro:', error);
-      Alert.alert('Erro', 'Erro ao salvar livro');
+      Alert.alert('Erro', error.message);
     } finally {
       setScanned(false);
     }
