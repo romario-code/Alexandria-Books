@@ -1,30 +1,40 @@
 const express = require('express');
 const mysql = require('mysql2');
 const app = express();
+require('dotenv').config();
+import { createClient } from '@supabase/supabase-js';
 
-const connection = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: '',
-  database: 'alexandria',
-  charset: 'utf8mb4',
-});
+//const connection = mysql.createConnection(process.env.SUPABASE_KEY);
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_KEY,
+);
+
+export default async function handler(req, res) {
+  const { data, error } = await supabase.from('books').select('*');
+
+  if (error) {
+    return res.status(500).json({ error: error.message });
+  }
+
+  res.status(200).json(data);
+}
 
 app.use(express.json());
 
 // Tratamento de erros de conexão
-connection.connect((err) => {
-  if (err) {
-    console.error('Erro ao conectar ao banco de dados:', err);
-    return;
-  }
-  console.log('Conectado ao banco de dados MySQL');
-});
+// supabase.connect((err) => {
+//   if (err) {
+//     console.error('Erro ao conectar ao banco de dados:', err);
+//     return;
+//   }
+//   console.log('Conectado ao banco de dados MySQL');
+// });
 
 // Função para verificar se um livro já existe
 const checkBookExists = (connection, isbn) => {
   return new Promise((resolve, reject) => {
-    connection.query(
+    supabase.schema(
       'SELECT isbn FROM books WHERE isbn = ?',
       [isbn],
       (error, results) => {
@@ -71,7 +81,7 @@ app.post('/api/books', async (req, res) => {
   `;
 
     // Executa a inserção
-    connection.query(
+    supabase.schema(
       query,
       [id, title, authors.join(', '), publisher, publishedDate, thumbnail],
       (error, results) => {
@@ -102,7 +112,7 @@ app.post('/api/books', async (req, res) => {
 app.get('/api/books', (req, res) => {
   const query = 'SELECT * FROM books';
 
-  connection.query(query, (error, results) => {
+  supabase.schema(query, (error, results) => {
     if (error) {
       console.error('Erro ao buscar livros:', error);
       res.status(500).json({ error: 'Erro ao buscar livros' });
@@ -122,7 +132,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Algo deu errado!' });
 });
 
-const PORT = process.env.PORT || 3030;
-app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
-});
+// const PORT = process.env.PORT || 3030;
+// app.listen(PORT, () => {
+//   console.log(`Servidor rodando na porta ${PORT}`);
+// });
