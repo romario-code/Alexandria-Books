@@ -158,15 +158,16 @@ export default function BookScanner() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    flexGrow: 1,
+    paddingLeft: 24,
+    paddingRight: 24,
     justifyContent: 'center',
-    backgroundColor: '#242424',
+    backgroundColor: '#121212',
   },
   message: {
     textAlign: 'center',
     paddingBottom: 10,
     color: '#fff',
-    fontSize: 18,
+    fontSize: 20,
     textAlign: 'left',
   },
   camera: {

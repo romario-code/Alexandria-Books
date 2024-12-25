@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "frontend",
-    "slug": "frontend",
-    "scheme": "frontend",
+    "name": "Alexandria Books",
+    "slug": "alexandria-books",
+    "scheme": "Alexandria Books",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -20,7 +20,12 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ],
+      "package": "com.romariojs94.frontend"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -34,7 +39,18 @@
           "recordAudioAndroid": true
         }
       ],
-      ["expo-router"]
-    ]
+      [
+        "expo-router"
+      ]
+    ],
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "28eca2a1-02ce-4481-ab61-7e1cd73500ad"
+      }
+    },
+    "owner": "romariojs94"
   }
 }
