@@ -1,126 +1,93 @@
 const express = require('express');
-const mysql = require('mysql2');
+const { createClient } = require('@supabase/supabase-js');
 const app = express();
 require('dotenv').config();
-import { createClient } from '@supabase/supabase-js';
 
-//const connection = mysql.createConnection(process.env.SUPABASE_KEY);
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_KEY,
-);
+const supabaseUrl = process.env.SUPA_BASE_API_URL;
+const supabaseKey = process.env.SUPA_BASE_API_KEY;
 
-export default async function handler(req, res) {
-  const { data, error } = await supabase.from('books').select('*');
-
-  if (error) {
-    return res.status(500).json({ error: error.message });
-  }
-
-  res.status(200).json(data);
+if (!supabaseUrl || !supabaseKey) {
+  console.error('Missing Supabase credentials in environment variables');
+  process.exit(1);
 }
+
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 app.use(express.json());
 
-// Tratamento de erros de conexão
-// supabase.connect((err) => {
-//   if (err) {
-//     console.error('Erro ao conectar ao banco de dados:', err);
-//     return;
-//   }
-//   console.log('Conectado ao banco de dados MySQL');
-// });
-
-// Função para verificar se um livro já existe
-const checkBookExists = (connection, isbn) => {
-  return new Promise((resolve, reject) => {
-    supabase.schema(
-      'SELECT isbn FROM books WHERE isbn = ?',
-      [isbn],
-      (error, results) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(results.length > 0);
-        }
-      },
-    );
-  });
+// Check if a book exists by ISBN
+const checkBookExists = async (isbn) => {
+  try {
+    const { data, error } = await supabase
+      .from('books')
+      .select('isbn')
+      .eq('isbn', isbn)
+      .single();
+      
+    if (error) throw error;
+    return !!data;
+  } catch (error) {
+    console.error('Error checking book existence:', error.message);
+    throw error;
+  }
 };
 
-// Rota para salvar um livro
-app.post('/api/books', async (req, res) => {
-  const { id, title, authors, publisher, publishedDate, thumbnail } = req.body;
-
-  if (!id || !title || !authors) {
-    return res.status(400).json({ error: 'Campos obrigatórios faltando' });
-  }
-
-  //  Verificar se o livro já existe
+// Route to fetch all books
+app.get('/api/books', async (req, res) => {
   try {
+    const { data, error } = await supabase
+      .from('books')
+      .select('*');
+
+    if (error) throw error;
+    res.status(200).json(data);
   } catch (error) {
-    console.error('Erro ao processar requisição:', error);
-    res.status(500).json({
-      error: 'Erro interno',
-      message: 'Erro ao processar a requisição',
-    });
+    console.error('Error fetching books:', error.message);
+    res.status(500).json({ error: error.message });
   }
+});
 
+// Route to save a book
+app.post('/api/books', async (req, res) => {
   try {
-    // Verifica se o livro já existe
-    const exists = await checkBookExists(connection, id);
+    const { id, title, authors, publisher, publishedDate, thumbnail } = req.body;
+
+    if (!id || !title || !authors) {
+      return res.status(400).json({ error: 'Campos obrigatórios faltando' });
+    }
+
+    const exists = await checkBookExists(id);
     if (exists) {
       return res.status(409).json({
         message: `Livro com ISBN ${id} já existe no banco de dados`,
       });
     }
 
-    // Prepara a query de inserção
-    const query = `
-    INSERT INTO books (isbn, title, authors, publisher, published_date, thumbnail) VALUES (?, ?, ?, ?, ?, ?)
-  `;
-
-    // Executa a inserção
-    supabase.schema(
-      query,
-      [id, title, authors.join(', '), publisher, publishedDate, thumbnail],
-      (error, results) => {
-        if (error) {
-          return res.status(500).json({
-            error: 'Erro interno',
-            message: 'Não foi possível salvar o livro',
-          });
-        }
-
-        res.status(201).json({
-          message: 'Livro salvo com sucesso',
-          id: results.insertId,
+    const { data, error } = await supabase
+      .from('books')
+      .insert([
+        {
           isbn: id,
-        });
-      },
-    );
-  } catch (error) {
-    console.error('Erro ao processar requisição:', error);
-    res.status(500).json({
-      error: 'Erro interno',
-      message: 'Erro ao processar a requisição',
+          title,
+          authors: authors.join(', '),
+          publisher,
+          published_date: publishedDate,
+          thumbnail,
+        },
+      ]);
+
+    if (error) throw error;
+    res.status(201).json({
+      message: 'Livro salvo com sucesso',
+      id: data[0].id,
+      isbn: id,
     });
+  } catch (error) {
+    console.error('Error saving book:', error.message);
+    res.status(500).json({ error: error.message });
   }
 });
 
-// Rota para buscar todos os livros
-app.get('/api/books', (req, res) => {
-  const query = 'SELECT * FROM books';
-
-  supabase.schema(query, (error, results) => {
-    if (error) {
-      console.error('Erro ao buscar livros:', error);
-      res.status(500).json({ error: 'Erro ao buscar livros' });
-      return;
-    }
-    res.json(results);
-  });
-});
 // Endpoint de teste
 app.get('/test', (req, res) => {
   res.json({ message: 'API funcionando!' });
@@ -132,7 +99,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Algo deu errado!' });
 });
 
-// const PORT = process.env.PORT || 3030;
-// app.listen(PORT, () => {
-//   console.log(`Servidor rodando na porta ${PORT}`);
-// });
+const PORT = process.env.PORT || 3030;
+app.listen(PORT, () => {
+  console.log(`Servidor rodando na porta ${PORT}`);
+});

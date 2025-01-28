@@ -20,7 +20,7 @@ export default function BookListScreen({ navigation }) {
   useEffect(() => {
     const fetchLivros = async () => {
       try {
-        const response = await fetch('http://192.168.1.11:3030/api/books');
+        const response = await fetch(process.env.SUPA_BASE_API);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
