@@ -1,4 +1,4 @@
-### App book tracker made with RN, node and MYSQL
+### BookScanner App - Usando React Native, Expo Go, Node.js e Supabase.  
 
 #### Instalar dependências
 
