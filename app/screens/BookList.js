@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { router } from 'expo-router';
+import { supabase } from '../utils/supabase';
 
 import {
   View,
@@ -12,7 +13,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 
-export default function BookListScreen({ navigation }) {
+export default function BookList({ navigation }) {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -20,11 +21,14 @@ export default function BookListScreen({ navigation }) {
   useEffect(() => {
     const fetchLivros = async () => {
       try {
-        const response = await fetch(process.env.SUPA_BASE_API);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+        const { data, error } = await supabase
+        .from('books')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+        if (error) {
+          throw error;
         }
-        const data = await response.json();
         setBooks(data);
       } catch (err) {
         setError(err.message);

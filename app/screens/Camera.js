@@ -10,16 +10,55 @@ import {
   Button,
   Platform,
 } from 'react-native';
+import { supabase } from '../utils/supabase';
+
 // Google API
 const API_KEY = process.env.EXPO_PUBLIC_GOOGLE_API_KEY;
 
-export default function BookScanner() {
+export default function Camera() {
   const [books, setBooks] = useState([]);
   const [currentBook, setCurrentBook] = useState(null);
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
+
+  const isValidISBN = (isbn) => {
+    // Remove hífens e espaços
+    isbn = isbn.replace(/[-\s]/g, '');
+
+    // Verifica se é ISBN-13
+    if (isbn.length === 13) {
+      // Verifica se contém apenas números
+      if (!/^\d{13}$/.test(isbn)) return false;
+
+      // Calcula o dígito verificador
+      let sum = 0;
+      for (let i = 0; i < 12; i++) {
+        sum += (i % 2 === 0) ? parseInt(isbn[i]) : parseInt(isbn[i]) * 3;
+      }
+      const checkDigit = (10 - (sum % 10)) % 10;
+      return checkDigit === parseInt(isbn[12]);
+    }
+
+    // Verifica se é ISBN-10
+    if (isbn.length === 10) {
+      // Verifica se os primeiros 9 caracteres são números
+      if (!/^\d{9}[\dX]$/.test(isbn)) return false;
+
+      // Calcula o dígito verificador
+      let sum = 0;
+      for (let i = 0; i < 9; i++) {
+        sum += parseInt(isbn[i]) * (10 - i);
+      }
+      const last = isbn[9].toUpperCase();
+      sum += (last === 'X') ? 10 : parseInt(last);
+
+      return sum % 11 === 0;
+    }
+
+    return false;
+  };
 
   // Se o usuário não concedeu permissão para a câmera, exiba uma mensagem e um botão para solicitar permissão
   if (!permission) {
@@ -37,10 +76,16 @@ export default function BookScanner() {
       </View>
     );
   }
-
-  // // Enviando o código de barras para o seu banco de dados
+  
   const handleBarCodeScanned = async ({ type, data }) => {
     try {
+      // Valida o ISBN antes de prosseguir
+      if (!isValidISBN(data)) {
+        Alert.alert('Erro', 'ISBN inválido. Por favor, tente novamente.');
+        setScanned(false);
+        return;
+      }
+
       setScanned(true);
       setLoading(true);
 
@@ -90,26 +135,22 @@ export default function BookScanner() {
       setLoading(false);
     }
   };
-
-  const API_URL = process.env.SUPA_BASE_API_URL;
+// Enviando o código de barras para o supabase
   const saveBook = async (book) => {
     try {
-      const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(book),
-      });
+      const { data, error } = await supabase
+        .from('books')
+        .insert([book])
+        .select();
 
-      const data = await response.json();
-
-      if (response.ok) {
-        Alert.alert('Sucesso', 'Livro salvo com sucesso!');
-      } else if (response.status === 409) {
-        Alert.alert('Atenção', data.message);
+      if (error) {
+        if (error.code === '23505') { // código de erro para violação de chave única
+          Alert.alert('Atenção', 'Este livro já está cadastrado');
+        } else {
+          throw error;
+        }
       } else {
-        throw new Error(data.error || 'Erro ao salvar livro');
+        Alert.alert('Sucesso', 'Livro salvo com sucesso!');
       }
     } catch (error) {
       console.error('Erro ao salvar livro:', error);
@@ -158,8 +199,7 @@ export default function BookScanner() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingLeft: 24,
-    paddingRight: 24,
+    padding: 0,
     justifyContent: 'center',
     backgroundColor: '#121212',
   },

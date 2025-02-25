@@ -39,11 +39,11 @@
           "recordAudioAndroid": true
         }
       ],
-      [
-        "expo-router"
-      ]
+      ["expo-router"]
     ],
     "extra": {
+      "EXPO_PUBLIC_SUPABASE_URL": "https://ngjqfzadakhfyvievmvm.supabase.co",
+      "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5nanFmemFkYWtoZnl2aWV2bXZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA0MzY1MTMsImV4cCI6MjA1NjAxMjUxM30.ZQsrRYga4u6rss994WPeVAtN11PQR-6Rg9pZ-cN7--o",
       "router": {
         "origin": false
       },

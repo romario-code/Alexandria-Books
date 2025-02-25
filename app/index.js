@@ -6,11 +6,11 @@ export default function Root() {
     <View style={styles.container}>
       <Button
         title="Scannear Livros"
-        onPress={() => router.push('/camerascreen')}
+        onPress={() => router.push('/screens/Camera')}
       />
       <Button
         title="Listar Livros"
-        onPress={() => router.push('/booklistscreen')}
+        onPress={() => router.push('/screens/BookList')}
       />
     </View>
   );
