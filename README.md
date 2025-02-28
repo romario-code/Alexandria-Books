@@ -1,5 +1,5 @@
-### BookScanner App - Usando React Native, Expo Go, Node.js e Supabase.  
-
+### Alexandria Books - React Native, Expo Go, Supabase e Google Books API  
+Scanner de livros construído com React Native, Expo Go, Supabase e Google Books API. Ferramenta prática para colecionadores de livros ou bibliotecários catalogarem facilmente seus livros usando seus smartphones.
 #### Instalar dependências
 
 ```
